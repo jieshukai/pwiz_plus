@@ -124,7 +124,6 @@ class MysqlMakeModels(BaseMakeModels):
         return '\n'.join(self.content)
 
 
-class CreateModels(object):
     def get_file_path(self, file_path):
         file_dir = None
         win_split = file_path.split('\\')

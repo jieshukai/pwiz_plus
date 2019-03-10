@@ -20,12 +20,11 @@ root_path = os.path.dirname(os.path.realpath(__file__))
 if __name__ == '__main__':
     make_models = MysqlMakeModels(**make_config, **db_config)
     content = make_models.get_content()
-
     create_models = CreateModels()
     models_py_path = create_models.get_file_path(
         os.path.join(root_path, 'apps', 'models', make_config['db_name'] + '.py'))
     sql_path = create_models.get_file_path(
         os.path.join(root_path, 'apps', 'sqls', make_config['db_name'] + '.sql'))
-    # print(models_py_path, sql_path)
+
     create_models.write_py_content(models_py_path, content)
     create_models.write_sql_content(make_models.conn, make_models.tables, sql_path)
