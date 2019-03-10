@@ -1,5 +1,5 @@
 #!usr/bin/env python
-#-*- coding:utf-8 _*-
+# -*- coding:utf-8 _*-
 """
 @author:jieshukai
 @file: column.py
@@ -12,12 +12,13 @@ class MysqlColumn(Column):
     """
     Store metadata about a database column.
     """
-    primary_key_types = (IntegerField, PrimaryKeyField)
-
     def __init__(self, name, field_class, raw_column_type, nullable,
-                 primary_key=False, db_column=None, index=False, unique=False, help_text=''):
+                 primary_key=False, column_name=None, index=False, unique=False, default=None, extra_parameters=None,
+                 help_text=''):
         super(MysqlColumn, self).__init__(name, field_class, raw_column_type, nullable,
-                                          primary_key, db_column, index, unique)
+                                          primary_key=primary_key, column_name=column_name, index=index,
+                                          unique=unique, default=default, extra_parameters=extra_parameters)
+
         self.help_text = help_text
 
     def __repr__(self):
@@ -26,7 +27,8 @@ class MysqlColumn(Column):
             'raw_column_type',
             'nullable',
             'primary_key',
-            'db_column',
+            'column_name',
+            'default',
             'help_text',
         ]
         keyword_args = ', '.join(
@@ -36,22 +38,26 @@ class MysqlColumn(Column):
 
     def get_field_parameters(self):
         params = {}
+        if self.extra_parameters is not None:
+            params.update(self.extra_parameters)
 
         # Set up default attributes.
         if self.nullable:
             params['null'] = True
-        if self.field_class is ForeignKeyField or self.name != self.db_column:
-            params['db_column'] = "'%s'" % self.db_column
-        if self.primary_key and self.field_class is not PrimaryKeyField:
+        if self.field_class is ForeignKeyField or self.name != self.column_name:
+            params['column_name'] = "'%s'" % self.column_name
+        if self.primary_key and not issubclass(self.field_class, AutoField):
             params['primary_key'] = True
+        if self.default is not None:
+            params['constraints'] = '[SQL("DEFAULT %s")]' % self.default
 
         # Handle ForeignKeyField-specific attributes.
         if self.is_foreign_key():
-            params['rel_model'] = self.rel_model
+            params['model'] = self.rel_model
             if self.to_field:
-                params['to_field'] = "'%s'" % self.to_field
+                params['field'] = "'%s'" % self.to_field
             if self.related_name:
-                params['related_name'] = "'%s'" % self.related_name
+                params['backref'] = "'%s'" % self.related_name
 
         # Handle indexes on column.
         if not self.is_primary_key():
@@ -61,24 +67,6 @@ class MysqlColumn(Column):
                 params['index'] = 'True'
         if self.help_text:
             params['help_text'] = "'%s'" % self.help_text
+
         return params
-
-    def get_field(self):
-        # Generate the field definition for this column.
-        field_params = self.get_field_parameters()
-        param_str = ', '.join('%s=%s' % (k, v)
-                              for k, v in sorted(field_params.items()))
-        field = '%s = %s(%s)' % (
-            self.name,
-            self.field_class.__name__,
-            param_str)
-
-        if self.field_class is UnknownField:
-            field = '%s  # %s' % (field, self.raw_column_type)
-
-        return field
-
-
-
-
 

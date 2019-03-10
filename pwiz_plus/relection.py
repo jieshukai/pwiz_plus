@@ -6,8 +6,8 @@
 @time: 2019/03/10
 """
 from playhouse.reflection import *
-from pwiz.database import *
-from pwiz.metada import PwizMySQLMetadata
+from pwiz_plus.database import *
+from pwiz_plus.metada import PwizMySQLMetadata
 
 DATABASE_ALIASES = {
     PwizMySQLDatabase: ['mysql', 'mysqldb'],
@@ -29,12 +29,3 @@ class PwizIntrospector(Introspector):
         else:
             metadata = SqliteMetadata(database)
         return cls(metadata, schema=schema)
-
-    def make_column_name(self, column):
-        # column = re.sub('_id$', '', column.lower().strip()) or column.lower()
-        column = re.sub('[^\w]+', '_', column)
-        if column in RESERVED_WORDS:
-            column += '_'
-        if len(column) and column[0].isdigit():
-            column = '_' + column
-        return column

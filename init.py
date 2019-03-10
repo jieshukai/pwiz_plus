@@ -7,7 +7,7 @@
 """
 import os
 
-from pwiz.tpl import MysqlMakeModels, CreateModels
+from pwiz_plus.tpl import MysqlMakeModels, CreateModels
 
 make_config = dict(
     db_type='mysql',

@@ -2,7 +2,7 @@ import datetime
 import os
 import peewee
 
-from pwiz.relection import PwizIntrospector, DATABASE_MAP
+from pwiz_plus.relection import PwizIntrospector, DATABASE_MAP
 
 TEMPLATE = """
 from peewee import *%s
