@@ -1,0 +1,9 @@
+.idea
+__pycache__
+static
+venv
+*.log
+*.db
+*.xlsx
+configs.py
+test*
