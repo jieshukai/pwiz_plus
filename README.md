@@ -2,8 +2,6 @@
 自动导出model 添加 help_text
 目前只支持 MySQL
 ```python
-import os
-
 from pwiz_plus.tpl import MysqlMakeModels
 
 make_config = dict(
