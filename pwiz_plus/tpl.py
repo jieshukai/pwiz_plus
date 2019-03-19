@@ -115,14 +115,13 @@ class MysqlMakeModels(BaseMakeModels):
         tables_dict = ['{']
         for k, v in self.database.model_names.items():
             tables_dict.append("'{}': {},".format(k, v))
-        print_('\n{} = {}'.format(self.db_name, '\n    '.join(tables_dict) + '\n}'))
+        print_('\nmodels = {}'.format('\n    '.join(tables_dict) + '\n}'))
 
     def get_content(self, add_header=True, preserve_order=False):
         if add_header:
             self.add_header()
         self.print_models(self.introspector, self.tables, preserve_order=False)
         return '\n'.join(self.content)
-
 
     def get_file_path(self, file_path):
         file_dir = None
@@ -141,20 +140,22 @@ class MysqlMakeModels(BaseMakeModels):
         else:
             raise Exception('dir error,place use os.path.join')
 
-    def write_sql_content(self, conn, tables, path):
+    def get_sql_content(self, conn, tables=None, partition=False):
         if tables is None:
             tables = conn.get_tables()
         table_sqls = [conn.execute_sql('show create table {} '.format(table)).fetchone() for table in tables]
+        content = ''
+        for table_sql in table_sqls:
+            for index, line in enumerate(table_sql):
+                if index == 0:
+                    content += ('-- %s \n' % line)
+                else:
+                    content += (line + '\n')
+            if partition and not ~table_sql[1].find('PARTITION'):
+                content += ('PARTITION BY RANGE (TO_DAYS(gmt_create))\n(')
+            content += ('\n')
+        return content
 
-        with open(path, 'wb') as f:
-            for table_sql in table_sqls:
-                for index, line in enumerate(table_sql):
-                    if index == 0:
-                        f.write(b'-- %s \n' % bytes(line.encode()))
-                    else:
-                        f.write(bytes(line.encode()) + b'\n')
-                f.write(b'\n')
-
-    def write_py_content(self, model_path, model_content):
+    def write_content(self, model_path, model_content):
         with open(model_path, 'wb') as f:
             f.write(bytes(model_content.encode()))
